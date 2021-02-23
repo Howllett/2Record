@@ -1,30 +1,38 @@
 
 from discord.ext.commands import Cog, command, Context
-from recordbot.utils.audio import Player
+from recordbot.apis.record import Api
 from recordbot.utils.voice import getclient, connect, disconnect
-from recordbot.utils.record import StreamTypes, RecordAudioFactory
-from recordbot.embeds.audio import RecordAudioEmbed
+from recordbot.utils.record import StreamTypes, RecordPlayer, RecordStreamData
+from recordbot.embeds.audio import RecordAudioEmbed, RecordNowEmbed
 
 
 class Audio(Cog):
 
-    player = Player(RecordAudioFactory())
+    player = RecordPlayer()
 
     _embed = None
 
-    async def show_embed(self, ctx, data):
-        self._embed = await ctx.send(embed=RecordAudioEmbed(data))
+    async def show_embed(self, ctx, data: RecordStreamData):
+        self._embed = await ctx.send(embed=RecordAudioEmbed(data.station))
 
     async def destroy_embed(self, *args):
         if self._embed:
             await self._embed.delete()
+
+    @command(name="now", aliases=["n"])
+    async def command_now(self, ctx: Context):
+        data: RecordStreamData = self.player.data
+        if data and data.station:
+            await ctx.send(
+                embed=RecordNowEmbed(await Api.get_now(data.station.id)))
 
     @command(name="join", aliases=["j"])
     async def command_join(self, ctx: Context):
         await connect(ctx)
 
     @command(name="play", aliases=["pl", "p"])
-    async def command_play(self, ctx: Context, name, stream: int = 320):
+    async def command_play(
+            self, ctx: Context, prefix: str = "record", stream: int = 320):
         vclient = await getclient(ctx)
         if not vclient:
             vclient = await connect(ctx)
@@ -37,7 +45,7 @@ class Audio(Cog):
         elif stream == 320:
             stream = StreamTypes.S320
         # Play audio with certain stream quality
-        await self.player.play(ctx, name, stream, on_playing=self.show_embed)
+        await self.player.play(ctx, prefix, stream, on_playing=self.show_embed)
 
     @command(name="stop", aliases=["stp", "st", "s"])
     async def command_stop(self, ctx):

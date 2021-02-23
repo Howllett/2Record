@@ -1,10 +1,16 @@
 
+import json
 from discord import Guild
 from discord.utils import get
 from recordbot.embed import RecordEmbed
+from recordbot.assets import Assets
 
 STATIONS_TITLE = "Станции %s/%s"
 STATIONS_PATTERN = "%s `%s` %s"
+RECORD_HELP = json.load(open(Assets.HELP, encoding="utf-8"))
+
+
+RecordHelp = RecordEmbed.from_dict(RECORD_HELP)
 
 
 class RecordStationsList(RecordEmbed):
@@ -47,8 +53,8 @@ class RecordStationsList(RecordEmbed):
                 raise IndexError("Page count out of range (%s)." % page)
             end -= (end - stations_size)
         for station in stations[start:end]:
-            title = station.get("title")
-            prefix = station.get("prefix")
+            title = station.title
+            prefix = station.prefix
             if "-" in prefix:
                 prefix = prefix.replace("-", "_")
             emoji = self._find_emoji(holder, prefix)

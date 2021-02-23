@@ -1,18 +1,17 @@
 
 from recordbot.embed import RecordEmbed
-from recordbot.utils.record import RecordStation
+from recordbot.apis.record import Station, Track
 
 
-class RecordAudioLoading(RecordEmbed):
+class RecordNowEmbed(RecordEmbed):
 
-    def __init__(self):
-        super().__init__(title="Загрузка")
-        self.set_thumbnail(url="https://filmdar.com/tms-loading.gif")
+    def __init__(self, data: Track):
+        super().__init__(title=data.song, description=data.artist)
+        self.set_thumbnail(url=data.image)
 
 
 class RecordAudioEmbed(RecordEmbed):
 
-    def __init__(self, data: RecordStation):
+    def __init__(self, data: Station):
         super().__init__(title=data.title, description=data.tooltip)
         self.set_thumbnail(url=data.icon)
-        self.set_footer(text=data.stream)
